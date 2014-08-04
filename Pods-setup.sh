@@ -8,30 +8,40 @@ PODS_DIR="$( cd "$LLVM_DIR"; cd ..; pwd )"
 CLANG_DIR="$PODS_DIR/multicompiler-clang"
 TOOLS_DIR="$LLVM_DIR/tools/clang"
 BUILD_DIR="$LLVM_DIR/build"
+PODSPEC="$TOOLS_DIR/multicompiler-clang.podspec"
 
-# Check for 'multicompiler-clang' directory
-if [ ! -d $TOOLS_DIR ]; then
-	if [ ! -d $CLANG_DIR ];	then 
-		echo "$TAG 'Pods/multicompiler-clang' directory does not exist."
-		echo "$TAG Please run 'pod install' from your app's top directory."
-		echo "$TAG Exiting..."
-		exit -1
+# Directory configuration
+if [ -d $TOOLS_DIR ]; then
+	if [ -f $PODSPEC ]; then
+		echo "$TAG '$TOOLS_DIR' ready..."
 	else
-		# Move clang into tools directory and rename
-		echo "$TAG Moving '$CLANG_DIR' to '$TOOLS_DIR'..."
-		echo "mv $CLANG_DIR $TOOLS_DIR"
-		mv $CLANG_DIR $TOOLS_DIR
-		if [ $? -ne 0 ]; then
-			echo "$TAG Cannot move clang directory. Exiting..."
+		# tools/clang is incomplete. attempt to copy
+		if [ -d $CLANG_DIR ]; then 
+			# Move clang into tools directory
+			echo "$TAG Moving '$CLANG_DIR' to '$TOOLS_DIR'..."
+			echo "rm -rf $TOOLS_DIR"
+			rm -rf $TOOLS_DIR
+			echo "mv $CLANG_DIR $TOOLS_DIR"
+			mv $CLANG_DIR $TOOLS_DIR
+		else
+			echo "$TAG '$CLANG_DIR' directory does not exist."
+			echo "$TAG Please run 'pod install' from your app's top directory."
+			echo "$TAG Exiting..."
 			exit -1
 		fi
 	fi
 else
-	echo "$TAG '$TOOLS_DIR' already exists. Exiting..."
-	exit -1
+	if [ -d $CLANG_DIR ]; then
+		echo "$TAG Moving '$CLANG_DIR' to '$TOOLS_DIR'..."
+		echo "mv $CLANG_DIR $TOOLS_DIR"
+		mv $CLANG_DIR $TOOLS_DIR
+	else
+		echo "$TAG '$CLANG_DIR' directory does not exist."
+		echo "$TAG Please run 'pod install' from your app's top directory."
+		echo "$TAG Exiting..."
+		exit -1
+	fi
 fi
-
-
 
 # Make 'build' directory for clang compile prefix
 if [ ! -d $BUILD_DIR ]; then
@@ -41,9 +51,9 @@ if [ ! -d $BUILD_DIR ]; then
 fi
 
 # Get argument flags
-CONFIG=0
-MAKE=0
-INSTALL=0
+CONFIG=1
+MAKE=1
+INSTALL=1
 
 for arg in "$@"; do
 	case $arg in
@@ -63,8 +73,8 @@ fi
 
 echo "$TAG Starting configuration of multicompiler..."
 pushd "$LLVM_DIR"
-echo "./configure --prefix=\"$BUILD_DIR\" --enabled-optimized"
-./configure --prefix="$BUILD_DIR" --enabled-optimized
+echo "./configure --prefix=\"$BUILD_DIR\" --enable-optimized"
+./configure --prefix="$BUILD_DIR" --enable-optimized
 RET=$?
 
 if [ $RET -eq 0 ]; then
