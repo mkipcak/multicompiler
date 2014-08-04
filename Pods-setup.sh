@@ -2,6 +2,39 @@
 
 TAG="[Pods-setup.sh]:"
 
+# Get argument flags
+ALL=0
+CONFIG=0
+MAKE=0
+INSTALL=0
+UPDATE=0
+
+for arg in "$@"; do
+	case $arg in
+		-a|--all) ALL=1 ;;
+		-c|--config) CONFIG=1 ;;
+		-m|--make) MAKE=1 ;;
+		-i|--install) INSTALL=1 ;;
+		-U|--update) UPDATE=1 ;;
+		*);;
+	esac
+done
+
+if [ $ALL -eq 0 && $CONFIG -eq 0 && $MAKE -eq 0 && $INSTALL -eq 0 && $UPDATE -eq 0 ]; then
+	echo "usage: ./Pods-setup.sh [-a | -c | -m | -i | -U]"
+	echo "	At least one flag is required"
+	echo ""
+	echo "	-a, --all		Attempt to automate all necessary changes, including"
+	echo "					compile and install multipiler and clang."
+	echo "	-c, --config	... Stop before calling './configure'"
+	echo "	-m, --make 		... Stop before calling 'make'"
+	echo "	-i, -install 	... Stop before calling 'make install'"
+	echo "	-U, --update 	Ignore 'tools/clang' contents and force overwite with"
+	echo "					original 'multicompiler-clang' directory"
+	echo ""
+	exit 0
+fi
+
 # Setup directory variables
 LLVM_DIR="$( cd "$( dirname "$0" )"; pwd )"
 PODS_DIR="$( cd "$LLVM_DIR"; cd ..; pwd )"
@@ -13,7 +46,15 @@ PODSPEC="$TOOLS_DIR/multicompiler-clang.podspec"
 # Directory configuration
 if [ -d $TOOLS_DIR ]; then
 	if [ -f $PODSPEC ]; then
-		echo "$TAG '$TOOLS_DIR' ready..."
+		if [ $UPDATE -eq 0 ]; then
+			echo "$TAG '$TOOLS_DIR' ready..."
+		else
+			echo "$TAG Updating tools/clang..."
+			echo "rm -rf $TOOLS_DIR"
+			rm -rf $TOOLS_DIR
+			echo "mv $CLANG_DIR $TOOLS_DIR"
+			mv $CLANG_DIR $TOOLS_DIR
+		fi
 	else
 		# tools/clang is incomplete. attempt to copy
 		if [ -d $CLANG_DIR ]; then 
@@ -49,20 +90,6 @@ if [ ! -d $BUILD_DIR ]; then
 	echo "mkdir $BUILD_DIR"
 	mkdir $BUILD_DIR
 fi
-
-# Get argument flags
-CONFIG=1
-MAKE=1
-INSTALL=1
-
-for arg in "$@"; do
-	case $arg in
-		-c|--config) CONFIG=1 ;;
-		-m|--make) MAKE=1 ;;
-		-i|--install) INSTALL=1 ;;
-		*);;
-	esac
-done
 
 if [ $CONFIG -eq 0 ]; then
 	echo "$TAG -c (--config) flag not given: stopping..."
