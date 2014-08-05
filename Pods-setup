@@ -110,7 +110,6 @@ if [[ -f "$BUILD_DIR/bin/clang" ]]; then
 	echo "$TAG Setting up clang-select... "
 	echo "sudo \"$LLVM_DIR/clang-select\" --vsetup \"$BUILD_DIR/bin\""
 	sudo "$LLVM_DIR/clang-select" --vsetup "$BUILD_DIR/bin"
-	echo ""
 	CLANG_SELECT=1
 fi
 
