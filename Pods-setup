@@ -59,14 +59,12 @@ if [[ -d $TOOLS_DIR ]]; then
 	if [[ -f $PODSPEC ]]; then
 		if [[ $UPDATE -eq 0 ]]; then
 			echo "$TAG '$TOOLS_DIR' ready!"
-			echo ""
 		else
 			echo "$TAG Updating tools/clang..."
 			echo "rm -rf \"$TOOLS_DIR\""
 			rm -rf "$TOOLS_DIR"
 			echo "cp -r \"$CLANG_DIR \"$TOOLS_DIR\""
 			cp -r "$CLANG_DIR $TOOLS_DIR"
-			echo ""
 		fi
 	else
 		# tools/clang is incomplete. attempt to copy
@@ -78,7 +76,6 @@ if [[ -d $TOOLS_DIR ]]; then
 			rm -rf "$TOOLS_DIR"
 			echo "cp -r \"$CLANG_DIR\" \"$TOOLS_DIR\""
 			cp -r "$CLANG_DIR" "$TOOLS_DIR"
-			echo ""
 		else
 			echo "$TAG '$CLANG_DIR' directory does not exist."
 			echo "$TAG Please run 'pod install' from your app's top directory."
@@ -91,7 +88,6 @@ else
 		echo "$TAG Copying '$CLANG_DIR' to '$TOOLS_DIR'..."
 		echo "cp -r \"$CLANG_DIR\" \"$TOOLS_DIR\""
 		cp -r "$CLANG_DIR" "$TOOLS_DIR"
-		echo ""
 	else
 		echo "$TAG '$CLANG_DIR' directory does not exist."
 		echo "$TAG Please run 'pod install' from your app's top directory."
@@ -109,13 +105,6 @@ else
 	echo "$TAG build directory already exists..."
 fi
 
-if [[ $NONE -eq 1 ]]; then
-	echo "$TAG -n (--none) flag given: stopping before configure..."
-	echo "$TAG Please './configure [flags]', 'make', and 'make install' the multicompiler."
-	echo "$TAG Exiting..."
-	exit 1
-fi
-
 if [[ -f "$BUILD_DIR/bin/clang" ]]; then
 	echo ""
 	echo "$TAG Setting up clang-select... "
@@ -123,6 +112,15 @@ if [[ -f "$BUILD_DIR/bin/clang" ]]; then
 	sudo "$LLVM_DIR/clang-select" --vsetup "$BUILD_DIR/bin"
 	echo ""
 	CLANG_SELECT=1
+fi
+
+echo ""
+
+if [[ $NONE -eq 1 ]]; then
+	echo "$TAG -n (--none) flag given: stopping before configure..."
+	echo "$TAG Please './configure [flags]', 'make', and 'make install' the multicompiler."
+	echo "$TAG Exiting..."
+	exit 1
 fi
 
 echo "$TAG Starting configuration of multicompiler..."
