@@ -27,17 +27,17 @@ if [[ $ALL -eq 0 && $CONFIG -eq 0 ]]; then
 		echo ""
 		echo "usage: ./Pods-setup [ <option> ]"
 		echo ""
-		echo "  At least one [acmn] flag is required"
+		echo "    Needs only one flag."
 		echo ""
-		echo "  -a, --all     ...  Attempt to automate all necessary changes, including"
-		echo "                     compile and install multipiler and clang."
-		echo "  -c, --config  ...  configure only"
-		echo "  -m, --make    ...  configure and make"
-		echo "  -n, --none    ...  bare minimum directory changes only"
+		echo "    -a, --all     ...  Attempt to automate all necessary changes, including"
+		echo "                       compile and install multipiler and clang."
+		echo "    -c, --config  ...  configure only"
+		echo "    -m, --make    ...  configure and make"
+		echo "    -n, --none    ...  bare minimum directory changes only"
 		echo ""
-		echo "  -u[flag]      ...  Ignore 'tools/clang' contents and force overwite with"
-		echo "                     original 'multicompiler-clang' directory"
-		echo "                     (e.g. --uall, -uc, --unone)"
+		echo "    -u[flag]      ...  Ignore 'tools/clang' contents and force overwite with"
+		echo "                       original 'multicompiler-clang' directory"
+		echo "                       (e.g. --uall, -uc, --unone)"
 		echo ""
 		exit 0
 	fi
@@ -56,8 +56,6 @@ PBXPROJ="$( cd "$APP_DIR/$(ls | grep *.xcodeproj)"; pwd )/project.pbxproj"
 echo "$TAG Adding compiler flags..."
 echo "sed -i.bak s/OTHER_CFLAGS\.\*$/OTHER_CFLAGS\ =\ \(\"\-fdiversify\"\,\"\-frandom-seed=0xcafe\"\,/g $PBXPROJ"
 sed -i.bak s/OTHER_CFLAGS\.\*$/OTHER_CFLAGS\ =\ \(\"\-fdiversify\"\,\"\-frandom-seed=0xcafe\"\,/g $PBXPROJ
-
-exit 0
 
 # Directory configuration
 if [[ -d $TOOLS_DIR ]]; then

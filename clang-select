@@ -39,6 +39,8 @@ case $1 in
 		echo ""
 		echo "usage: ./clang-select [ <option> ]"
 		echo ""
+		echo "    Needs only one flag."
+		echo ""
 		echo "    --setup, --setup=/path/to/multicompiler/clang"
 		echo "                 ...  Setup symbolic links for simple multicompiler switching."
 		echo "                      Path is optional. The default is 'multicompiler/build/bin/clang'"
@@ -53,7 +55,7 @@ case $1 in
 		echo "                      (e.g. --vsetup, -va, --vmulti)"
 		echo ""
 		echo "examples:      ./clang-select --setup"
-		echo "               ./clang-select --setup ~/llvm/bin/clang"
+		echo "               ./clang-select --setup=~/llvm/bin/clang"
 		echo "               ./clang-select -a"
 		echo ""
 		exit 0
