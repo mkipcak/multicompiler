@@ -111,8 +111,9 @@ fi
 
 echo ""
 echo "$TAG Setting up clang-select... "
-echo "$LLVM_DIR/clang-select --vsetup \"$BUILD_DIR\""
-sudo "$LLVM_DIR/clang-select" --vsetup "$BUILD_DIR"
+echo "sudo \"$LLVM_DIR/clang-select\" --vsetup \"$BUILD_DIR/bin\""
+sudo "$LLVM_DIR/clang-select" --vsetup "$BUILD_DIR/bin"
+echo ""
 
 if [[ $NONE -eq 1 ]]; then
 	echo "$TAG -n (--none) flag given: stopping before configure..."
