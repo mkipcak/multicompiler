@@ -116,6 +116,15 @@ if [[ $NONE -eq 1 ]]; then
 	exit 1
 fi
 
+if [[ -f "$BUILD_DIR/bin/clang" ]]; then
+	echo ""
+	echo "$TAG Setting up clang-select... "
+	echo "sudo \"$LLVM_DIR/clang-select\" --vsetup \"$BUILD_DIR/bin\""
+	sudo "$LLVM_DIR/clang-select" --vsetup "$BUILD_DIR/bin"
+	echo ""
+	CLANG_SELECT=1
+fi
+
 echo "$TAG Starting configuration of multicompiler..."
 pushd "$LLVM_DIR"
 echo "./configure --prefix=\"$BUILD_DIR\" --enable-optimized"
@@ -170,7 +179,7 @@ else
 	exit -1
 fi
 
-if [[ -f "$BUILD_DIR/bin/clang" ]]; then
+if [[ -f "$BUILD_DIR/bin/clang" && CLANG_SELECT -eq 1 ]]; then
 	echo ""
 	echo "$TAG Setting up clang-select... "
 	echo "sudo \"$LLVM_DIR/clang-select\" --vsetup \"$BUILD_DIR/bin\""
@@ -180,9 +189,6 @@ fi
 
 echo "$TAG Finished."
 popd
-
-echo ""
-echo "./clang-select can be used to switch between compilers. see ./clang-select --help for details"
 
 exit 0
 
