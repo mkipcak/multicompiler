@@ -18,16 +18,11 @@ case $1 in
 	-uc|--uconfig) CONFIG=1; UPDATE=1 ;;
 	-um|--umake) MAKE=1; UPDATE=1 ;;
 	-un|--unone) NONE=1; UPDATE=1 ;;
-
-	*);;
-esac
-
-if [[ $ALL -eq 0 && $CONFIG -eq 0 ]]; then
-	if [[ $MAKE -eq 0 && $NONE -eq 0 ]]; then
+	''|-h|--help)
 		echo ""
 		echo "usage: ./Pods-setup [ <option> ]"
 		echo ""
-		echo "    Needs only one flag."
+		echo "    Needs only one flag at a time."
 		echo ""
 		echo "    -a, --all     ...  Attempt to automate all necessary changes, including"
 		echo "                       compile and install multipiler and clang."
@@ -40,8 +35,9 @@ if [[ $ALL -eq 0 && $CONFIG -eq 0 ]]; then
 		echo "                       (e.g. --uall, -uc, --unone)"
 		echo ""
 		exit 0
-	fi
-fi
+		;;
+	*) echo "unknown argument $1"; echo "do --help for help" ;;
+esac
 
 # Setup directory variables
 LLVM_DIR="$( cd "$( dirname "$0" )"; pwd )"
@@ -113,6 +109,10 @@ else
 	echo "$TAG build directory already exists..."
 fi
 
+echo ""
+echo "$TAG Setting up clang-select... "
+echo "./clang-select --vsetup=
+
 if [[ $NONE -eq 1 ]]; then
 	echo "$TAG -n (--none) flag given: stopping before configure..."
 	echo "$TAG Please './configure [flags]', 'make', and 'make install' the multicompiler."
@@ -174,7 +174,7 @@ else
 	exit -1
 fi
 
-echo "$TAG Finishing..."
+echo "$TAG Finished."
 popd
 
 exit 0

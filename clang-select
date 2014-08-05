@@ -4,10 +4,9 @@ TAG="[clang-select]:"
 VERBOSE=0
 
 case $1 in
-	--setup) CASE=1 ;;
-	--setup=*)
+	--setup)
 		CASE=1
-		PATH=${1#*=}
+		PATH_TO_MULTI_CLANG=$2
 		;;
 	-a|--apple) CASE=2 ;;
 	-m|--multi) CASE=3 ;;
@@ -16,11 +15,7 @@ case $1 in
 	--vsetup)
 		CASE=1
 		VERBOSE=1
-		;;
-	--vsetup=*)
-		CASE=1
-		PATH=${1#*=}
-		VERBOSE=1
+		PATH_TO_MULTI_CLANG=$2
 		;;
 	-va|--vapple)
 		CASE=2
@@ -39,9 +34,9 @@ case $1 in
 		echo ""
 		echo "usage: ./clang-select [ <option> ]"
 		echo ""
-		echo "    Needs only one flag."
+		echo "    Needs only one flag at a time."
 		echo ""
-		echo "    --setup, --setup=/path/to/multicompiler/clang"
+		echo "    --setup [/path/to/multicompiler/clang]"
 		echo "                 ...  Setup symbolic links for simple multicompiler switching."
 		echo "                      Path is optional. The default is 'multicompiler/build/bin/clang'"
 		echo ""
@@ -55,7 +50,7 @@ case $1 in
 		echo "                      (e.g. --vsetup, -va, --vmulti)"
 		echo ""
 		echo "examples:      ./clang-select --setup"
-		echo "               ./clang-select --setup=~/llvm/bin/clang"
+		echo "               ./clang-select --setup ~/llvm/bin/clang"
 		echo "               ./clang-select -a"
 		echo ""
 		exit 0
@@ -88,28 +83,28 @@ BACKUP="$BIN_DIR/clang.orig"
 
 
 if [[ CASE -eq 1 ]]; then
-	if [[ $PATH != "" ]]; then
-		if [[ -d $PATH ]]; then
-			TEST="$(cd "$PATH"; pwd)/clang"
-			if [[ -f $TEST ]]; then
-				CLANG_MULTI=$TEST
+	if [[ $PATH_TO_MULTI_CLANG != "" ]]; then
+		if [[ -d $PATH_TO_MULTI_CLANG ]]; then
+			TESTER="$(cd "$PATH_TO_MULTI_CLANG"; pwd)/clang"
+			if [[ -f $TESTER ]]; then
+				CLANG_MULTI=$TESTER
 			else
 				echo "$TAG multicompiler clang not found in... $2"
 				echo "$TAG check that your --setup=/path/to/multi/clang is correct"
 				exit -1
 			fi
 		fi
-		if [[ -f $PATH ]]; then
-			CLANG_MULTI=$PATH
+		if [[ -f $PATH_TO_MULTI_CLANG ]]; then
+			CLANG_MULTI=$PATH_TO_MULTI_CLANG
 		fi
 	fi
-fi
 
-if [[ ! -f $CLANG_MULTI ]]; then
-	echo "$TAG multicompiler clang not found in... $CLANG_MULTI"
-	exit -1
-else
-	echo "$TAG using multicompiler clang location... $CLANG_MULTI"
+	if [[ ! -f $CLANG_MULTI ]]; then
+		echo "$TAG multicompiler clang not found in... $CLANG_MULTI"
+		exit -1
+	else
+		echo "$TAG using multicompiler clang location... $CLANG_MULTI"
+	fi
 fi
 
 echo ""
