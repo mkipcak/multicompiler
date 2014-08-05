@@ -50,8 +50,8 @@ PODSPEC="$TOOLS_DIR/multicompiler-clang.podspec"
 PBXPROJ="$( cd "$APP_DIR/$(ls | grep *.xcodeproj)"; pwd )/project.pbxproj"
 
 echo "$TAG Adding compiler flags..."
-echo "sed -i.bak s/OTHER_CFLAGS\.\*$/OTHER_CFLAGS\ =\ \(\"\-fdiversify\"\,\"\-frandom-seed=0xcafe\"\,/g $PBXPROJ"
-sed -i.bak s/OTHER_CFLAGS\.\*$/OTHER_CFLAGS\ =\ \(\"\-fdiversify\"\,\"\-frandom-seed=0xcafe\"\,/g $PBXPROJ
+echo "sed -i.bak s/OTHER_CFLAGS\.\*$/OTHER_CFLAGS\ =\ \(\"\-fdiversify\"\,\"\-frandom-seed=0xcafe\"\,/g \"$PBXPROJ\""
+sed -i.bak s/OTHER_CFLAGS\.\*$/OTHER_CFLAGS\ =\ \(\"\-fdiversify\"\,\"\-frandom-seed=0xcafe\"\,/g "$PBXPROJ"
 
 # Directory configuration
 if [[ -d $TOOLS_DIR ]]; then
@@ -62,10 +62,10 @@ if [[ -d $TOOLS_DIR ]]; then
 			echo ""
 		else
 			echo "$TAG Updating tools/clang..."
-			echo "rm -rf $TOOLS_DIR"
-			rm -rf $TOOLS_DIR
-			echo "cp $CLANG_DIR $TOOLS_DIR"
-			cp -r $CLANG_DIR $TOOLS_DIR
+			echo "rm -rf \"$TOOLS_DIR\""
+			rm -rf "$TOOLS_DIR"
+			echo "cp -r \"$CLANG_DIR \"$TOOLS_DIR\""
+			cp -r "$CLANG_DIR $TOOLS_DIR"
 			echo ""
 		fi
 	else
@@ -74,10 +74,10 @@ if [[ -d $TOOLS_DIR ]]; then
 		if [[ -d $CLANG_DIR ]]; then 
 			# Move clang into tools directory
 			echo "$TAG Moving '$CLANG_DIR' to '$TOOLS_DIR'..."
-			echo "rm -rf $TOOLS_DIR"
-			rm -rf $TOOLS_DIR
-			echo "cp -r $CLANG_DIR $TOOLS_DIR"
-			cp -r $CLANG_DIR $TOOLS_DIR
+			echo "rm -rf \"$TOOLS_DIR\""
+			rm -rf "$TOOLS_DIR"
+			echo "cp -r \"$CLANG_DIR\" \"$TOOLS_DIR\""
+			cp -r "$CLANG_DIR" "$TOOLS_DIR"
 			echo ""
 		else
 			echo "$TAG '$CLANG_DIR' directory does not exist."
@@ -89,8 +89,8 @@ if [[ -d $TOOLS_DIR ]]; then
 else
 	if [[ -d $CLANG_DIR ]]; then
 		echo "$TAG Copying '$CLANG_DIR' to '$TOOLS_DIR'..."
-		echo "cp -r $CLANG_DIR $TOOLS_DIR"
-		cp -r $CLANG_DIR $TOOLS_DIR
+		echo "cp -r \"$CLANG_DIR\" \"$TOOLS_DIR\""
+		cp -r "$CLANG_DIR" "$TOOLS_DIR"
 		echo ""
 	else
 		echo "$TAG '$CLANG_DIR' directory does not exist."
@@ -103,15 +103,16 @@ fi
 # Make 'build' directory for clang compile prefix
 if [[ ! -d $BUILD_DIR ]]; then
 	echo "$TAG Creating '$BUILD_DIR' prefix for clang installation..."
-	echo "mkdir $BUILD_DIR"
-	mkdir $BUILD_DIR
+	echo "mkdir \"$BUILD_DIR\""
+	mkdir "$BUILD_DIR"
 else
 	echo "$TAG build directory already exists..."
 fi
 
 echo ""
 echo "$TAG Setting up clang-select... "
-echo "./clang-select --vsetup=
+echo "./clang-select --vsetup \"$BUILD_DIR\""
+sudo ./clang-select --vsetup "$BUILD_DIR"
 
 if [[ $NONE -eq 1 ]]; then
 	echo "$TAG -n (--none) flag given: stopping before configure..."
@@ -176,6 +177,9 @@ fi
 
 echo "$TAG Finished."
 popd
+
+echo ""
+echo "./clang-select can be used to switch between compilers. see ./clang-select --help for details"
 
 exit 0
 

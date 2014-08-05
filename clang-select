@@ -6,7 +6,11 @@ VERBOSE=0
 case $1 in
 	--setup)
 		CASE=1
-		PATH_TO_MULTI_CLANG=$2
+		if [[ $2 != "" ]]; then
+			PATH_TO_MULTI_CLANG="${2%\"}"
+			PATH_TO_MULTI_CLANG="${PATH_TO_MULTI_CLANG#\"}"
+			PATH_TO_MULTI_CLANG="$(echo "$PATH_TO_MULTI_CLANG" | sed s,~,$HOME,g)"
+		fi
 		;;
 	-a|--apple) CASE=2 ;;
 	-m|--multi) CASE=3 ;;
@@ -15,7 +19,11 @@ case $1 in
 	--vsetup)
 		CASE=1
 		VERBOSE=1
-		PATH_TO_MULTI_CLANG=$2
+		if [[ $2 != "" ]]; then
+			PATH_TO_MULTI_CLANG="${2%\"}"
+			PATH_TO_MULTI_CLANG="${PATH_TO_MULTI_CLANG#\"}"
+			PATH_TO_MULTI_CLANG="$(echo "$PATH_TO_MULTI_CLANG" | sed s,~,$HOME,g)"
+		fi
 		;;
 	-va|--vapple)
 		CASE=2
@@ -81,21 +89,20 @@ CLANG_MULTI="$LLVM_DIR/build/bin/clang"
 MULTI_LINK="$BIN_DIR/clang_multi"
 BACKUP="$BIN_DIR/clang.orig"
 
-
 if [[ CASE -eq 1 ]]; then
 	if [[ $PATH_TO_MULTI_CLANG != "" ]]; then
 		if [[ -d $PATH_TO_MULTI_CLANG ]]; then
 			TESTER="$(cd "$PATH_TO_MULTI_CLANG"; pwd)/clang"
 			if [[ -f $TESTER ]]; then
-				CLANG_MULTI=$TESTER
+				CLANG_MULTI="$TESTER"
 			else
-				echo "$TAG multicompiler clang not found in... $2"
-				echo "$TAG check that your --setup=/path/to/multi/clang is correct"
+				echo "$TAG multicompiler clang not found in... $PATH_TO_MULTI_CLANG"
+				echo "$TAG check that your --setup /path/to/multi/clang is correct"
 				exit -1
 			fi
 		fi
 		if [[ -f $PATH_TO_MULTI_CLANG ]]; then
-			CLANG_MULTI=$PATH_TO_MULTI_CLANG
+			CLANG_MULTI="$PATH_TO_MULTI_CLANG"
 		fi
 	fi
 
