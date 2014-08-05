@@ -9,20 +9,23 @@ MAKE=0
 UPDATE=0
 NONE=0
 
-for arg in "$@"; do
-	case $arg in
-		-a|--all) ALL=1 ;;
-		-c|--config) CONFIG=1 ;;
-		-m|--make) MAKE=1 ;;
-		-u|--update) UPDATE=1 ;;
-		-n|--none) NONE=1 ;;
-		*);;
-	esac
-done
+case $1 in
+	-a|--all) ALL=1 ;;
+	-c|--config) CONFIG=1 ;;
+	-m|--make) MAKE=1 ;;
+	-n|--none) NONE=1 ;;
+	-ua|--uall) ALL=1; UPDATE=1 ;;
+	-uc|--uconfig) CONFIG=1; UPDATE=1 ;;
+	-um|--umake) MAKE=1; UPDATE=1 ;;
+	-un|--unone) NONE=1; UPDATE=1 ;;
+
+	*);;
+esac
 
 if [[ $ALL -eq 0 && $CONFIG -eq 0 ]]; then
 	if [[ $MAKE -eq 0 && $NONE -eq 0 ]]; then
-		echo "usage: ./Pods-setup.sh [-a | -c | -m | -i | -u]"
+		echo ""
+		echo "usage: ./Pods-setup [ <option> ]"
 		echo ""
 		echo "  At least one [acmn] flag is required"
 		echo ""
@@ -32,8 +35,9 @@ if [[ $ALL -eq 0 && $CONFIG -eq 0 ]]; then
 		echo "  -m, --make    ...  configure and make"
 		echo "  -n, --none    ...  bare minimum directory changes only"
 		echo ""
-		echo "  -u, --update  ...  Ignore 'tools/clang' contents and force overwite with"
+		echo "  -u[flag]      ...  Ignore 'tools/clang' contents and force overwite with"
 		echo "                     original 'multicompiler-clang' directory"
+		echo "                     (e.g. --uall, -uc, --unone)"
 		echo ""
 		exit 0
 	fi

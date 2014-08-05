@@ -37,7 +37,7 @@ case $1 in
 
 	*)
 		echo ""
-		echo "usage: clang-select [ --setup [path/to/clang] | -a | -m ]"
+		echo "usage: ./clang-select [ <option> ]"
 		echo ""
 		echo "    --setup, --setup=/path/to/multicompiler/clang"
 		echo "                 ...  Setup symbolic links for simple multicompiler switching."
