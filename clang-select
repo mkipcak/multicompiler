@@ -219,5 +219,11 @@ case $CASE in
 	*);;
 esac
 
+if [[ ! -h "/usr/bin/clang-select" ]]; then
+	echo "$TAG adding symlink to /usr/bin..."
+	sudo ln -s "$LLVM_DIR/clang-select" "/usr/bin/clang-select"
+	echo "$TAG you can now switch compiler with 'clang-select [-a | -m]'"
+fi
+
 echo "$TAG exiting..."
 exit 0

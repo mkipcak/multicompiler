@@ -109,12 +109,6 @@ else
 	echo "$TAG build directory already exists..."
 fi
 
-echo ""
-echo "$TAG Setting up clang-select... "
-echo "sudo \"$LLVM_DIR/clang-select\" --vsetup \"$BUILD_DIR/bin\""
-sudo "$LLVM_DIR/clang-select" --vsetup "$BUILD_DIR/bin"
-echo ""
-
 if [[ $NONE -eq 1 ]]; then
 	echo "$TAG -n (--none) flag given: stopping before configure..."
 	echo "$TAG Please './configure [flags]', 'make', and 'make install' the multicompiler."
@@ -174,6 +168,14 @@ else
 	echo "$TAG Error installing multicompiler. (exit code $RET)"
 	echo "$TAG Exiting..."
 	exit -1
+fi
+
+if [[ -f "$BUILD_DIR/bin/clang" ]]; then
+	echo ""
+	echo "$TAG Setting up clang-select... "
+	echo "sudo \"$LLVM_DIR/clang-select\" --vsetup \"$BUILD_DIR/bin\""
+	sudo "$LLVM_DIR/clang-select" --vsetup "$BUILD_DIR/bin"
+	echo ""
 fi
 
 echo "$TAG Finished."
