@@ -1,6 +1,6 @@
 #!/bin/bash
 
-TAG="[Pods-setup.sh]:"
+TAG="[Pods-setup]:"
 
 # Get argument flags
 ALL=0
@@ -14,26 +14,26 @@ for arg in "$@"; do
 		-a|--all) ALL=1 ;;
 		-c|--config) CONFIG=1 ;;
 		-m|--make) MAKE=1 ;;
-		-U|--update) UPDATE=1 ;;
+		-u|--update) UPDATE=1 ;;
 		-n|--none) NONE=1 ;;
 		*);;
 	esac
 done
 
-if [ $ALL -eq 0 -a $CONFIG -eq 0 ]; then
-	if [ $MAKE -eq 0 -a $NONE -eq 0 ]; then
-		echo "usage: ./Pods-setup.sh [-a | -c | -m | -i | -U]"
+if [[ $ALL -eq 0 && $CONFIG -eq 0 ]]; then
+	if [[ $MAKE -eq 0 && $NONE -eq 0 ]]; then
+		echo "usage: ./Pods-setup.sh [-a | -c | -m | -i | -u]"
 		echo ""
-		echo "	At least one [acmn] flag is required"
+		echo "  At least one [acmn] flag is required"
 		echo ""
-		echo "	-a, --all		Attempt to automate all necessary changes, including"
-		echo "				compile and install multipiler and clang."
-		echo "	-c, --config 		configure only"
-		echo "	-m, --make		configure and make"
-		echo "	-n, --none		bare minimum directory changes only"
+		echo "  -a, --all     ...  Attempt to automate all necessary changes, including"
+		echo "                     compile and install multipiler and clang."
+		echo "  -c, --config  ...  configure only"
+		echo "  -m, --make    ...  configure and make"
+		echo "  -n, --none    ...  bare minimum directory changes only"
 		echo ""
-		echo "	-U, --update 		Ignore 'tools/clang' contents and force overwite with"
-		echo "				original 'multicompiler-clang' directory"
+		echo "  -u, --update  ...  Ignore 'tools/clang' contents and force overwite with"
+		echo "                     original 'multicompiler-clang' directory"
 		echo ""
 		exit 0
 	fi
@@ -42,16 +42,24 @@ fi
 # Setup directory variables
 LLVM_DIR="$( cd "$( dirname "$0" )"; pwd )"
 PODS_DIR="$( cd "$LLVM_DIR"; cd ..; pwd )"
+APP_DIR="$( cd "$PODS_DIR"; cd ..; pwd )"
 CLANG_DIR="$PODS_DIR/multicompiler-clang"
 TOOLS_DIR="$LLVM_DIR/tools/clang"
 BUILD_DIR="$LLVM_DIR/build"
 PODSPEC="$TOOLS_DIR/multicompiler-clang.podspec"
+PBXPROJ="$( cd "$APP_DIR/$(ls | grep *.xcodeproj)"; pwd )/project.pbxproj"
+
+echo "$TAG Adding compiler flags..."
+echo "sed -i.bak s/OTHER_CFLAGS\.\*$/OTHER_CFLAGS\ =\ \(\"\-fdiversify\"\,\"\-frandom-seed=0xcafe\"\,/g $PBXPROJ"
+sed -i.bak s/OTHER_CFLAGS\.\*$/OTHER_CFLAGS\ =\ \(\"\-fdiversify\"\,\"\-frandom-seed=0xcafe\"\,/g $PBXPROJ
+
+exit 0
 
 # Directory configuration
-if [ -d $TOOLS_DIR ]; then
+if [[ -d $TOOLS_DIR ]]; then
 	echo "$TAG '$TOOLS_DIR' exists..."
-	if [ -f $PODSPEC ]; then
-		if [ $UPDATE -eq 0 ]; then
+	if [[ -f $PODSPEC ]]; then
+		if [[ $UPDATE -eq 0 ]]; then
 			echo "$TAG '$TOOLS_DIR' ready!"
 			echo ""
 		else
@@ -65,7 +73,7 @@ if [ -d $TOOLS_DIR ]; then
 	else
 		# tools/clang is incomplete. attempt to copy
 		echo "$TAG clang directory incomplete. Attempting to move original."
-		if [ -d $CLANG_DIR ]; then 
+		if [[ -d $CLANG_DIR ]]; then 
 			# Move clang into tools directory
 			echo "$TAG Moving '$CLANG_DIR' to '$TOOLS_DIR'..."
 			echo "rm -rf $TOOLS_DIR"
@@ -81,7 +89,7 @@ if [ -d $TOOLS_DIR ]; then
 		fi
 	fi
 else
-	if [ -d $CLANG_DIR ]; then
+	if [[ -d $CLANG_DIR ]]; then
 		echo "$TAG Copying '$CLANG_DIR' to '$TOOLS_DIR'..."
 		echo "cp -r $CLANG_DIR $TOOLS_DIR"
 		cp -r $CLANG_DIR $TOOLS_DIR
@@ -95,7 +103,7 @@ else
 fi
 
 # Make 'build' directory for clang compile prefix
-if [ ! -d $BUILD_DIR ]; then
+if [[ ! -d $BUILD_DIR ]]; then
 	echo "$TAG Creating '$BUILD_DIR' prefix for clang installation..."
 	echo "mkdir $BUILD_DIR"
 	mkdir $BUILD_DIR
@@ -103,7 +111,7 @@ else
 	echo "$TAG build directory already exists..."
 fi
 
-if [ $NONE -eq 1 ]; then
+if [[ $NONE -eq 1 ]]; then
 	echo "$TAG -n (--none) flag given: stopping before configure..."
 	echo "$TAG Please './configure [flags]', 'make', and 'make install' the multicompiler."
 	echo "$TAG Exiting..."
@@ -116,7 +124,7 @@ echo "./configure --prefix=\"$BUILD_DIR\" --enable-optimized"
 ./configure --prefix="$BUILD_DIR" --enable-optimized
 RET=$?
 
-if [ $RET -eq 0 ]; then
+if [[ $RET -eq 0 ]]; then
 	echo "$TAG Multicompiler configured successfully."
 else
 	echo "$TAG Error configuring multicompiler. (exit code $RET)"
@@ -124,7 +132,7 @@ else
 	exit -1
 fi
 
-if [ $CONFIG -eq 1 ]; then
+if [[ $CONFIG -eq 1 ]]; then
 	echo "$TAG -c (--config) flag given: stopping before make..."
 	echo "$TAG Please 'make' and 'make install' the multicompiler."
 	echo "$TAG Exiting..."
@@ -136,7 +144,7 @@ echo "make"
 make
 RET=$?
 
-if [ $RET -eq 0 ]; then
+if [[ $RET -eq 0 ]]; then
 	echo "$TAG Multicompiler made successfully."
 else
 	echo "$TAG Error making multicompiler. (exit code $RET)"
@@ -144,7 +152,7 @@ else
 	exit -1
 fi
 
-if [ $MAKE -eq 1 ]; then
+if [[ $MAKE -eq 1 ]]; then
 	echo "$TAG -m (--make) flag given: stopping before install..."
 	echo "$TAG Please 'make install' to install into $BUILD_DIR."
 	echo "$TAG Exiting..."
@@ -156,7 +164,7 @@ echo "make install"
 make install
 RET=$?
 
-if [ $RET -eq 0 ]; then
+if [[ $RET -eq 0 ]]; then
 	echo "$TAG Multicompiler installed successfully."
 else
 	echo "$TAG Error installing multicompiler. (exit code $RET)"
@@ -168,9 +176,6 @@ echo "$TAG Finishing..."
 popd
 
 exit 0
-
-# Set application compiler flags
-#sed -i.bak s/OTHER_CFLAGS\.\*$/OTHER_CFLAGS\ =\ \(\"\-fdiversify\"\,\"\-frandom-seed=0xcafe\"\,/g project.pbxproj
 
 # Setup random seed generation on compile.
 
