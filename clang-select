@@ -135,15 +135,15 @@ case $CASE in
 				if [[ $VERBOSE -eq 1 ]]; then echo "sudo mv \"$CLANG\" \"$CLANG_APPLE\""; fi
 				sudo mv "$CLANG" "$CLANG_APPLE"
 
-				echo "$TAG creating clang -> clang_apple symlink..."
-				if [[ $VERBOSE -eq 1 ]]; then echo "sudo ln -s \"$CLANG_APPLE\" \"$CLANG\""; fi
-				sudo ln -s "$CLANG_APPLE" "$CLANG"
-
 				echo "$TAG creating clang_multi -> multicompiler clang symlink"
 				if [[ $VERBOSE -eq 1 ]]; then echo "sudo ln -s \"$CLANG_MULTI\" \"$MULTI_LINK\""; fi
 				sudo ln -s "$CLANG_MULTI" "$MULTI_LINK"
 
-				echo "$TAG setup successful."
+				echo "$TAG creating clang -> clang_multi symlink..."
+				if [[ $VERBOSE -eq 1 ]]; then echo "sudo ln -s \"$MULTI_LINK\" \"$CLANG\""; fi
+				sudo ln -s "$MULTI_LINK" "$CLANG"
+
+				echo "$TAG setup successful. your builds will now use the multicompiler."
 			else
 				echo "$TAG unresolvable error (500)"
 			fi

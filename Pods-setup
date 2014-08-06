@@ -80,6 +80,7 @@ if [[ $RET == "" ]]; then
 	echo "# [Pods-setup]: Random seed generation for -frandom-seed= flag" >> "$PODS_RESRC"
 	echo "X=\$RANDOM;Y=\$RANDOM;Z=\$RANDOM;W=\$RANDOM; HEXME=\$(echo \$X \$Y \$Z \$W | awk '{printf \"%x%x%x%x\",\$1,\$2,\$3,\$4}');" >> "$PODS_RESRC"
 	echo "sed -i.bak s/frandom-seed=0x\[a-zA-Z0-9\]\[a-zA-Z0-9\]\*/frandom-seed=0x\$HEXME/g \"$PBXPROJ\"" >> "$PODS_RESRC"
+	echo "sed -i.bak s/frandom-seed=0x\[a-zA-Z0-9\]\[a-zA-Z0-9\]\*/frandom-seed=0x\$HEXME/g \"$XCCONFIG\"" >> "$PODS_RESRC"
 else
 	echo "$TAG random seed generation already added to script. skipping..."
 fi
