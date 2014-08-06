@@ -42,19 +42,29 @@ esac
 # Setup directory variables
 LLVM_DIR="$( cd "$( dirname "$0" )"; pwd )"
 PODS_DIR="$( cd "$LLVM_DIR"; cd ..; pwd )"
+
+if [[ ${PODS_DIR##*/} != "Pods" ]]; then
+	echo "$TAG file structure error"
+	exit -1
+fi
+
 APP_DIR="$( cd "$PODS_DIR"; cd ..; pwd )"
+APP_NAME="${APP_DIR##*/}"
 CLANG_DIR="$PODS_DIR/multicompiler-clang"
 TOOLS_DIR="$LLVM_DIR/tools/clang"
 BUILD_DIR="$LLVM_DIR/build"
 PODSPEC="$TOOLS_DIR/multicompiler-clang.podspec"
-PBXPROJ="$( cd "$APP_DIR/$(ls | grep *.xcodeproj)"; pwd )/project.pbxproj"
-PODS_RESRC="$(find "$PODS_DIR" | grep "Pods-.*-resources.sh")"
+
+PBXPROJ="$APP_DIR/$APP_NAME.xcodeproj/project.pbxproj"
+PODS_RESRC="$PODS_DIR/Pods-$APP_NAME-resources.sh"
 
 RET="$(grep "frandom-seed" "$PBXPROJ")"
 if [[ $RET == "" ]]; then
-	echo "$TAG Adding compiler flags..."
+	echo "$TAG Adding compiler flags to build settings..."
 	echo "sed -i.bak s/OTHER_CFLAGS\.\*$/OTHER_CFLAGS\ =\ \(\"\-fdiversify\"\,\"\-frandom-seed=0xcafe\"\,/g \"$PBXPROJ\""
 	sed -i.bak s/OTHER_CFLAGS\.\*$/OTHER_CFLAGS\ =\ \(\"\-fdiversify\"\,\"\-frandom-seed=0xcafe\"\,/g "$PBXPROJ"
+else
+	echo "$TAG compiler flags found in build settings. skipping..."
 fi
 
 RET="$(grep "Pods-setup" "$PODS_RESRC")"
@@ -64,14 +74,16 @@ if [[ $RET == "" ]]; then
 	echo "# [Pods-setup]: Random seed generation for -frandom-seed= flag" >> $PODS_RESRC
 	echo "X=\$RANDOM;Y=\$RANDOM;Z=\$RANDOM;W=\$RANDOM; HEXME=\$(echo \$X \$Y \$Z \$W | awk '{printf \"%x%x%x%x\",\$1,\$2,\$3,\$4}');" >> $PODS_RESRC
 	echo "sed -i.bak s/frandom-seed=0x\[a-zA-Z0-9\]\[a-zA-Z0-9\]\*/frandom-seed=0x\$HEXME/g \"$PBXPROJ\"" >> $PODS_RESRC
+else
+	echo "$TAG random seed generation already added to script. skipping..."
 fi
 
 # Directory configuration
 if [[ -d $TOOLS_DIR ]]; then
-	echo "$TAG '$TOOLS_DIR' exists..."
+	echo "$TAG tools/clang exists..."
 	if [[ -f $PODSPEC ]]; then
 		if [[ $UPDATE -eq 0 ]]; then
-			echo "$TAG '$TOOLS_DIR' ready!"
+			echo "$TAG tools/clang ready!"
 		else
 			echo "$TAG Updating tools/clang..."
 			echo "rm -rf \"$TOOLS_DIR\""
