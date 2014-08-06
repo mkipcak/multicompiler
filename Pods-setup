@@ -57,12 +57,18 @@ PODSPEC="$TOOLS_DIR/multicompiler-clang.podspec"
 
 PBXPROJ="$APP_DIR/$APP_NAME.xcodeproj/project.pbxproj"
 PODS_RESRC="$PODS_DIR/Pods-$APP_NAME-resources.sh"
+XCCONFIG="$PODS_DIR/Pods-$APP_NAME.xcconfig"
 
-RET="$(grep "frandom-seed" "$PBXPROJ")"
+RET="$(grep "frandom-seed" "$PBXPROJ" "$XCCONFIG")"
 if [[ $RET == "" ]]; then
+	# try in the pbxproj file
 	echo "$TAG Adding compiler flags to build settings..."
 	echo "sed -i.bak s/OTHER_CFLAGS\.\*$/OTHER_CFLAGS\ =\ \(\"\-fdiversify\"\,\"\-frandom-seed=0xcafe\"\,/g \"$PBXPROJ\""
 	sed -i.bak s/OTHER_CFLAGS\.\*$/OTHER_CFLAGS\ =\ \(\"\-fdiversify\"\,\"\-frandom-seed=0xcafe\"\,/g "$PBXPROJ"
+
+	#try in the Pods/Pods-.xcconfig file
+	echo "sed -i.bak s/OTHER_CFLAGS\ =\ /OTHER_CFLAGS\ =\ \-fdiversify\ \-frandom-seed=0xcafefeed\ /g \"$XCCONFIG\""
+	sed -i.bak s/OTHER_CFLAGS\ =\ /OTHER_CFLAGS\ =\ \-fdiversify\ \-frandom-seed=0xcafefeed\ /g "$XCCONFIG"
 else
 	echo "$TAG compiler flags found in build settings. skipping..."
 fi
