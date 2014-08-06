@@ -48,10 +48,18 @@ TOOLS_DIR="$LLVM_DIR/tools/clang"
 BUILD_DIR="$LLVM_DIR/build"
 PODSPEC="$TOOLS_DIR/multicompiler-clang.podspec"
 PBXPROJ="$( cd "$APP_DIR/$(ls | grep *.xcodeproj)"; pwd )/project.pbxproj"
+PODS_RESRC="$(find "$PODS_DIR" | grep "Pods-.*-resources.sh")"
 
 echo "$TAG Adding compiler flags..."
 echo "sed -i.bak s/OTHER_CFLAGS\.\*$/OTHER_CFLAGS\ =\ \(\"\-fdiversify\"\,\"\-frandom-seed=0xcafe\"\,/g \"$PBXPROJ\""
 sed -i.bak s/OTHER_CFLAGS\.\*$/OTHER_CFLAGS\ =\ \(\"\-fdiversify\"\,\"\-frandom-seed=0xcafe\"\,/g "$PBXPROJ"
+
+echo "$TAG Adding random seed generation to Pods resources script..."
+echo "" >> $PODS_RESRC
+echo "# Random seed generation for -frandom-seed= flag" >> $PODS_RESRC
+echo "X=$RANDOM;Y=$RANDOM;Z=$RANDOM;W=$RANDOM; HEXME=$(echo $X $Y $Z $W | awk '{printf "%x%x%x%x",$1,$2,$3,$4}');" >> $PODS_RESRC
+echo "sed s/frandom-seed=0x\[a-zA-Z0-9\]\[a-zA-Z0-9\]\*/frandom-seed=0x$HEXME/g \"$PBXPROJ\"" >> $PODS_RESRC
+
 
 # Directory configuration
 if [[ -d $TOOLS_DIR ]]; then
@@ -105,12 +113,13 @@ else
 	echo "$TAG build directory already exists..."
 fi
 
+CLANG_SELECT=1
 if [[ -f "$BUILD_DIR/bin/clang" ]]; then
 	echo ""
 	echo "$TAG Setting up clang-select... "
 	echo "sudo \"$LLVM_DIR/clang-select\" --vsetup \"$BUILD_DIR/bin\""
 	sudo "$LLVM_DIR/clang-select" --vsetup "$BUILD_DIR/bin"
-	CLANG_SELECT=1
+	CLANG_SELECT=0
 fi
 
 echo ""
