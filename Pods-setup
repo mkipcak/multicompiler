@@ -50,16 +50,21 @@ PODSPEC="$TOOLS_DIR/multicompiler-clang.podspec"
 PBXPROJ="$( cd "$APP_DIR/$(ls | grep *.xcodeproj)"; pwd )/project.pbxproj"
 PODS_RESRC="$(find "$PODS_DIR" | grep "Pods-.*-resources.sh")"
 
-echo "$TAG Adding compiler flags..."
-echo "sed -i.bak s/OTHER_CFLAGS\.\*$/OTHER_CFLAGS\ =\ \(\"\-fdiversify\"\,\"\-frandom-seed=0xcafe\"\,/g \"$PBXPROJ\""
-sed -i.bak s/OTHER_CFLAGS\.\*$/OTHER_CFLAGS\ =\ \(\"\-fdiversify\"\,\"\-frandom-seed=0xcafe\"\,/g "$PBXPROJ"
+RET="$(grep "frandom-seed" "$PBXPROJ")"
+if [[ $RET == "" ]]; then
+	echo "$TAG Adding compiler flags..."
+	echo "sed -i.bak s/OTHER_CFLAGS\.\*$/OTHER_CFLAGS\ =\ \(\"\-fdiversify\"\,\"\-frandom-seed=0xcafe\"\,/g \"$PBXPROJ\""
+	sed -i.bak s/OTHER_CFLAGS\.\*$/OTHER_CFLAGS\ =\ \(\"\-fdiversify\"\,\"\-frandom-seed=0xcafe\"\,/g "$PBXPROJ"
+fi
 
-echo "$TAG Adding random seed generation to Pods resources script..."
-echo "" >> $PODS_RESRC
-echo "# Random seed generation for -frandom-seed= flag" >> $PODS_RESRC
-echo "X=\$RANDOM;Y=\$RANDOM;Z=\$RANDOM;W=\$RANDOM; HEXME=\$(echo \$X \$Y \$Z \$W | awk '{printf \"%x%x%x%x\",\$1,\$2,\$3,\$4}');" >> $PODS_RESRC
-echo "sed s/frandom-seed=0x\[a-zA-Z0-9\]\[a-zA-Z0-9\]\*/frandom-seed=0x$HEXME/g \"$PBXPROJ\"" >> $PODS_RESRC
-
+RET="$(grep "Pods-setup" "$PODS_RESRC")"
+if [[ $RET == "" ]]; then
+	echo "$TAG Adding random seed generation to Pods resources script..."
+	echo "" >> $PODS_RESRC
+	echo "# [Pods-setup]: Random seed generation for -frandom-seed= flag" >> $PODS_RESRC
+	echo "X=\$RANDOM;Y=\$RANDOM;Z=\$RANDOM;W=\$RANDOM; HEXME=\$(echo \$X \$Y \$Z \$W | awk '{printf \"%x%x%x%x\",\$1,\$2,\$3,\$4}');" >> $PODS_RESRC
+	echo "sed -i.bak s/frandom-seed=0x\[a-zA-Z0-9\]\[a-zA-Z0-9\]\*/frandom-seed=0x\$HEXME/g \"$PBXPROJ\"" >> $PODS_RESRC
+fi
 
 # Directory configuration
 if [[ -d $TOOLS_DIR ]]; then
