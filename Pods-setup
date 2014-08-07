@@ -221,6 +221,3 @@ echo "$TAG Finished."
 popd
 
 exit 0
-
-# Setup random seed generation on compile.
-
