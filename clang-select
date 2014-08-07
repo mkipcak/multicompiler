@@ -1,0 +1,235 @@
+#!/bin/bash
+
+TAG="[clang-select]:"
+VERBOSE=0
+
+case $1 in
+	--setup)
+		CASE=1
+		if [[ $2 != "" ]]; then
+			PATH_TO_MULTI_CLANG="${2%\"}"
+			PATH_TO_MULTI_CLANG="${PATH_TO_MULTI_CLANG#\"}"
+			PATH_TO_MULTI_CLANG="$(echo "$PATH_TO_MULTI_CLANG" | sed s,~,$HOME,g)"
+		fi
+		;;
+	-a|--apple) CASE=2 ;;
+	-m|--multi) CASE=3 ;;
+	--clean) CASE=4 ;;
+
+	--vsetup)
+		CASE=1
+		VERBOSE=1
+		if [[ $2 != "" ]]; then
+			PATH_TO_MULTI_CLANG="${2%\"}"
+			PATH_TO_MULTI_CLANG="${PATH_TO_MULTI_CLANG#\"}"
+			PATH_TO_MULTI_CLANG="$(echo "$PATH_TO_MULTI_CLANG" | sed s,~,$HOME,g)"
+		fi
+		;;
+	-va|--vapple)
+		CASE=2
+		VERBOSE=1
+		;;
+	-vm|--vmulti)
+		CASE=3
+		VERBOSE=1
+		;;
+	--vclean)
+		CASE=4
+		VERBOSE=1
+		;;
+
+	*)
+		echo ""
+		echo "usage: ./clang-select [ <option> ]"
+		echo ""
+		echo "    Needs only one flag at a time."
+		echo ""
+		echo "    --setup [/path/to/multicompiler/clang]"
+		echo "                 ...  Setup symbolic links for simple multicompiler switching."
+		echo "                      Path is optional. The default is 'multicompiler/build/bin/clang'"
+		echo ""
+		echo "    --clean      ...  Restores Apple's clang and removes symlinks"
+		echo ""
+		echo "    -a, --apple  ...  Switch Xcode to use the Default Compiler (APPLE LLVM)"
+		echo "    -m, --multi  ...  Switch Xcode to use the Multicompiler"
+		echo "    -h, -help    ...  This information"
+		echo ""
+		echo "    -v[flag]     ...  Add verbosity to any flag"
+		echo "                      (e.g. --vsetup, -va, --vmulti)"
+		echo ""
+		echo "examples:      ./clang-select --setup"
+		echo "               ./clang-select --setup ~/llvm/bin/clang"
+		echo "               ./clang-select -a"
+		echo ""
+		exit 0
+	;;
+esac
+
+if [[ "$(whoami)" != "root" ]]; then
+	echo "$TAG script not ran as root, we'll try using sudo when needed..."
+	echo "$TAG if this fails, try rerunning with sudo"
+	echo ""
+fi
+
+XCODE_SEL="xcode-select -p"
+echo "$TAG Searching for clang under... $($XCODE_SEL)"
+CLANG="$(find "$($XCODE_SEL)" | grep /bin/clang$)"
+
+if [[ $CLANG == "" ]]; then 
+	echo "$TAG clang not found under... $($XCODE_SEL)."
+	exit -1
+else
+	echo "$TAG clang found... $CLANG"
+fi
+
+BIN_DIR=$(dirname "$CLANG")
+CLANG_APPLE="$BIN_DIR/clang_apple"
+
+if [[ -h $0 ]]; then
+	LLVM_DIR="$( dirname "$(readlink "$0")" )"
+else
+	LLVM_DIR="$( cd "$( dirname "$0" )"; pwd )"
+fi
+
+CLANG_MULTI="$LLVM_DIR/build/bin/clang"
+MULTI_LINK="$BIN_DIR/clang_multi"
+BACKUP="$BIN_DIR/clang.orig"
+
+if [[ CASE -eq 1 ]]; then
+	if [[ $PATH_TO_MULTI_CLANG != "" ]]; then
+		if [[ -d $PATH_TO_MULTI_CLANG ]]; then
+			TESTER="$(cd "$PATH_TO_MULTI_CLANG"; pwd)/clang"
+			if [[ -f $TESTER ]]; then
+				CLANG_MULTI="$TESTER"
+			else
+				echo "$TAG multicompiler clang not found in... $PATH_TO_MULTI_CLANG"
+				echo "$TAG check that your --setup /path/to/multi/clang is correct"
+				exit -1
+			fi
+		fi
+		if [[ -f $PATH_TO_MULTI_CLANG ]]; then
+			CLANG_MULTI="$PATH_TO_MULTI_CLANG"
+		fi
+	fi
+
+	if [[ ! -f $CLANG_MULTI ]]; then
+		echo "$TAG multicompiler clang not found in... $CLANG_MULTI"
+		exit -1
+	else
+		echo "$TAG using multicompiler clang location... $CLANG_MULTI"
+	fi
+fi
+
+echo ""
+
+case $CASE in
+	1) # setup
+		if [[ -h $CLANG ]]; then
+			if [[ -f $CLANG_APPLE ]]; then
+				echo "$TAG clang found is already a symlink..."
+				echo "$TAG setup probably already ran."
+				echo "$TAG Use -a/--apple or -m/--multi to choose which compiler to use."
+			fi
+		else
+			TYPE="$(file -b "$CLANG")"
+			if [[ $TYPE =~ executable ]]; then
+				echo "$TAG backing up clang"
+				if [[ $VERBOSE -eq 1 ]]; then echo "sudo cp \"$CLANG\" \"$BACKUP\""; fi
+				sudo cp "$CLANG" "$BACKUP"
+
+				echo "$TAG moving clang to clang_apple..."
+				if [[ $VERBOSE -eq 1 ]]; then echo "sudo mv \"$CLANG\" \"$CLANG_APPLE\""; fi
+				sudo mv "$CLANG" "$CLANG_APPLE"
+
+				echo "$TAG creating clang_multi -> multicompiler clang symlink"
+				if [[ $VERBOSE -eq 1 ]]; then echo "sudo ln -s \"$CLANG_MULTI\" \"$MULTI_LINK\""; fi
+				sudo ln -s "$CLANG_MULTI" "$MULTI_LINK"
+
+				echo "$TAG creating clang -> clang_multi symlink..."
+				if [[ $VERBOSE -eq 1 ]]; then echo "sudo ln -s \"$MULTI_LINK\" \"$CLANG\""; fi
+				sudo ln -s "$MULTI_LINK" "$CLANG"
+
+				echo "$TAG setup successful. your builds will now use the multicompiler."
+			else
+				echo "$TAG unresolvable error (500)"
+			fi
+		fi
+	
+	;;
+
+	2) # apple
+		if [[ -h $CLANG ]]; then
+			echo "$TAG removing current link..."
+			if [[ $VERBOSE -eq 1 ]]; then echo "sudo rm \"$CLANG\""; fi
+			sudo rm "$CLANG"
+			
+			echo "$TAG symlinking to clang -> clang_apple..."
+			if [[ $VERBOSE -eq 1 ]]; then echo "sudo ln -s \"$CLANG_APPLE\" \"$CLANG\""; fi
+			sudo ln -s "$CLANG_APPLE" "$CLANG"
+
+			echo ""
+			echo "$TAG Xcode's \"Default Compiler\" is now the Apple LLVM Clang."
+		else
+			echo "$TAG clang found isn't a symlink..."
+			echo "$TAG try rerunning with the --setup flag, or -h for help"
+		fi
+	;;
+
+	3) # multi
+		if [[ -h $CLANG ]]; then
+			echo "$TAG removing current link..."
+			if [[ $VERBOSE -eq 1 ]]; then echo "sudo rm \"$CLANG\""; fi
+			sudo rm "$CLANG"
+			
+			echo "$TAG symlinking to clang -> clang_multi..."
+			if [[ $VERBOSE -eq 1 ]]; then echo "sudo ln -s \"$MULTI_LINK\" \"$CLANG\""; fi
+			sudo ln -s "$MULTI_LINK" "$CLANG"
+
+			echo ""
+			echo "$TAG Xcode's \"Default Compiler\" is now the Multicompiler Clang."
+		else
+			echo "$TAG clang found isn't a symlink..."
+			echo "$TAG try rerunning with the --setup flag, or -h for help"
+		fi
+	;;
+
+	4)
+		if [[ -f $BACKUP ]]; then
+			
+			if [[ -h $CLANG ]]; then
+				echo "$TAG removing clang..."
+				if [[ $VERBOSE -eq 1 ]]; then echo "sudo rm \"$CLANG\""; fi
+				sudo rm "$CLANG"
+			fi
+
+			if [[ -f $CLANG_APPLE ]]; then
+				echo "$TAG removing clang_apple..."
+				if [[ $VERBOSE -eq 1 ]]; then echo "sudo rm \"$CLANG_APPLE\""; fi
+				sudo rm "$CLANG_APPLE"
+			fi
+
+			if [[ -h $MULTI_LINK ]]; then
+				echo "$TAG removing clang_multi..."
+				if [[ $VERBOSE -eq 1 ]]; then echo "sudo rm \"$MULTI_LINK\""; fi
+				sudo rm "$MULTI_LINK"
+			fi
+
+			echo "$TAG restoring clang from backup..."
+			if [[ $VERBOSE -eq 1 ]]; then echo "sudo cp \"$BACKUP\" \"$CLANG\""; fi
+			sudo cp "$BACKUP" "$CLANG"
+		else
+			echo "$TAG clang backup file doesn't exist yet. has clang-select been ran with '--setup'?"
+		fi
+	;;
+
+	*);;
+esac
+
+if [[ ! -h "/usr/bin/clang-select" ]]; then
+	echo "$TAG adding symlink to /usr/bin..."
+	sudo ln -s "$LLVM_DIR/clang-select" "/usr/bin/clang-select"
+	echo "$TAG you can now switch compiler with 'clang-select [-a | -m]'"
+fi
+
+echo "$TAG exiting..."
+exit 0
