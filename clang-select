@@ -84,7 +84,13 @@ fi
 
 BIN_DIR=$(dirname "$CLANG")
 CLANG_APPLE="$BIN_DIR/clang_apple"
-LLVM_DIR="$( cd "$( dirname "$0" )"; pwd )"
+
+if [[ -h $0 ]]; then
+	LLVM_DIR="$( dirname "$(readlink "$0")" )"
+else
+	LLVM_DIR="$( cd "$( dirname "$0" )"; pwd )"
+fi
+
 CLANG_MULTI="$LLVM_DIR/build/bin/clang"
 MULTI_LINK="$BIN_DIR/clang_multi"
 BACKUP="$BIN_DIR/clang.orig"
@@ -175,7 +181,7 @@ case $CASE in
 			if [[ $VERBOSE -eq 1 ]]; then echo "sudo rm \"$CLANG\""; fi
 			sudo rm "$CLANG"
 			
-			echo "$TAG symlinking to clang -> clang_apple..."
+			echo "$TAG symlinking to clang -> clang_multi..."
 			if [[ $VERBOSE -eq 1 ]]; then echo "sudo ln -s \"$MULTI_LINK\" \"$CLANG\""; fi
 			sudo ln -s "$MULTI_LINK" "$CLANG"
 
