@@ -42,7 +42,7 @@ case $1 in
 		echo ""
 		echo "usage: ./clang-select [ <option> ]"
 		echo ""
-		echo "    Needs only one flag at a time."
+		echo "    Requires exactly one flag."
 		echo ""
 		echo "    --setup [/path/to/multicompiler/clang]"
 		echo "                 ...  Setup symbolic links for simple multicompiler switching."

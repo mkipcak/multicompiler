@@ -22,7 +22,7 @@ case $1 in
 		echo ""
 		echo "usage: ./Pods-setup [ <option> ]"
 		echo ""
-		echo "    Needs only one flag at a time."
+		echo "    Requires exactly one flag."
 		echo ""
 		echo "    -a, --all     ...  Attempt to automate all necessary changes, including"
 		echo "                       compile and install multipiler and clang."
